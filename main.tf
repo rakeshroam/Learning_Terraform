@@ -1,39 +1,74 @@
-data "aws_ami" "app_ami" {
-  most_recent = true
+terraform {
+  required_version = ">= 1.5.0"
 
-  filter {
-    name   = "name"
-    values = ["bitnami-tomcat-*-debian-12-*"]
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
   }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  owners = ["612051870749"] # Bitnami
 }
 
-resource "aws_instance" "web" {
-  ami           = data.aws_ami.app_ami.id
-  instance_type = "t3.nano"
+provider "aws" {
+  region = "ap-south-1"
+}
 
-  # Add these for production use:
-  # subnet_id              = aws_subnet.main.id
-  # vpc_security_group_ids = [aws_security_group.web.id]
-  # key_name               = "your-key-pair"
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_ssm_parameter" "al2023" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+
+resource "aws_security_group" "ec2_sg" {
+  name        = "terraform-ec2-sg"
+  description = "Allow SSH"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["YOUR_PUBLIC_IP/32"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
-    Name = "HelloWorld"
+    Name = "terraform-ec2-sg"
   }
+}
+
+resource "aws_instance" "app_server" {
+  ami                         = data.aws_ssm_parameter.al2023.value
+  instance_type               = "t3.micro"
+  subnet_id                   = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "terraform-ec2-ap-south-1"
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.app_server.id
+}
+
+output "public_ip" {
+  value = aws_instance.app_server.public_ip
 }
