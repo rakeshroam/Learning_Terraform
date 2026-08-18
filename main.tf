@@ -3,7 +3,7 @@ data "aws_ami" "app_ami" {
 
   filter {
     name   = "name"
-    values = ["bitnami-tomcat-*-debian-12-*"]
+    values = ["bitnami-tomcat-*"]
   }
 
   filter {
@@ -23,6 +23,7 @@ data "aws_ami" "app_ami" {
 
   owners = ["612051870749"] # Bitnami
 }
+
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.app_ami.id
