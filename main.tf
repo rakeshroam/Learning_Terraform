@@ -1,4 +1,5 @@
-data "aws_ami" "app_ami" { most_recent = true
+data "aws_ami" "app_ami" {
+  most_recent = true
 
   filter {
     name   = "name"
@@ -10,7 +11,7 @@ data "aws_ami" "app_ami" { most_recent = true
     values = ["hvm"]
   }
 
-  owners = ["612051870749"] # Bitnami
+  owners = ["979382823631"] # Bitnami
 }
 
 resource "aws_instance" "web" {
