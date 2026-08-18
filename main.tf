@@ -1,18 +1,3 @@
-terraform {
-  required_version = ">= 1.5.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "ap-south-1"
-}
-
 data "aws_vpc" "default" {
   default = true
 }
@@ -47,10 +32,6 @@ resource "aws_security_group" "ec2_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = {
-    Name = "terraform-ec2-sg"
-  }
 }
 
 resource "aws_instance" "app_server" {
@@ -63,12 +44,4 @@ resource "aws_instance" "app_server" {
   tags = {
     Name = "terraform-ec2-ap-south-1"
   }
-}
-
-output "instance_id" {
-  value = aws_instance.app_server.id
-}
-
-output "public_ip" {
-  value = aws_instance.app_server.public_ip
 }
