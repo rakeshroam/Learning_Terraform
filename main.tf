@@ -24,8 +24,6 @@ data "aws_ami" "app_ami" {
   owners = ["612051870749"] # Bitnami
 }
 
-
-
 resource "aws_instance" "web" {
   ami           = data.aws_ami.app_ami.id
   instance_type = "t3.nano"
@@ -39,4 +37,3 @@ resource "aws_instance" "web" {
     Name = "HelloWorld"
   }
 }
-
